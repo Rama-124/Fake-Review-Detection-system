@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Review Analysis</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+        .order {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 20px;
+        }
+        .order img {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .review {
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #ddd;
+        }
+        .fake-review {
+            border-color: #ff4444;
+            background-color: #ffe6e6;
+        }
+        .verified-review {
+            border-color: #00c851;
+            background-color: #e8f5e9;
+        }
+        .positive-review {
+            border-color: #17a2b8;
+            background-color: #e3f2fd;
+        }
+        .negative-review {
+            border-color: #ffc107;
+            background-color: #fff3cd;
+        }
+        .neutral-review {
+            border-color: #6c757d;
+            background-color: #f8f9fa;
+        }
+        .analysis-alert {
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 4px;
+        }
+        .fake-alert {
+            color: #cc0000;
+            background-color: #ffebeb;
+        }
+        .verified-alert {
+            color: #007a3d;
+            background-color: #e8f5e9;
+        }
+        .neutral-alert {
+            color: #6c757d;
+            background-color: #f8f9fa;
+        }
+        .technical-details {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 100px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .error {
+            color: #dc3545;
+            padding: 15px;
+            margin: 20px 0;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+            background: #f8d7da;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .preserve-scroll {
+            scroll-behavior: auto !important;
+        }
+        .pending-review {
+            opacity: 0.7;
+            border-style: dashed;
+        }
+    </style>
+</head>
+<body>
+    <h1>Product Review Analysis</h1>
+    <div id="orders">
+        <div class="loading">Loading products...</div>
+    </div>
+
+    <script>
+        let isLoading = true;
+        let isWriting = false;
+        let savedScrollPosition = 0;
+        const textareaValues = new Map();
+
+        async function loadOrders() {
+            try {
+                if (isWriting) return;
+
+                // Save current state
+                const scrollPosition = window.scrollY;
+                const tempValues = new Map();
+                document.querySelectorAll('textarea').forEach(ta => {
+                    tempValues.set(ta.id, ta.value);
+                });
+
+                isLoading = true;
+                updateLoadingState();
+                
+                const response = await fetch('http://localhost:5000/api/orders');
+                const data = await response.json();
+                
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Failed to load orders');
+                }
+
+                displayOrders(data.orders);
+
+                // Restore values after render
+                requestAnimationFrame(() => {
+                    data.orders.forEach(order => {
+                        const ta = document.getElementById(`review-${order._id}`);
+                        if (ta) ta.value = tempValues.get(`review-${order._id}`) || '';
+                    });
+                    window.scrollTo(0, scrollPosition);
+                });
+
+            } catch (error) {
+                showError(`Error loading reviews: ${error.message}`);
+            } finally {
+                isLoading = false;
+                updateLoadingState();
+            }
+        }
+
+        function displayOrders(orders) {
+            const container = document.getElementById('orders');
+            if (!orders || orders.length === 0) {
+                return showError('No products found');
+            }
+
+            container.innerHTML = orders.map(order => `
+                <div class="order">
+                    <img src="${order.productImage}" alt="${order.productName}">
+                    <div>
+                        <h2>${order.productName}</h2>
+                        <p>Price: $${order.productPrice?.toFixed(2) || 'N/A'}</p>
+                        
+                        <div id="reviews-${order._id}">
+                            ${(order.reviews || []).map(review => `
+                                <div class="review ${getReviewClass(review)}">
+                                    <p>${review.reviewText || ''}</p>
+                                    <div class="analysis-alert ${review.isFake ? 'fake-alert' : getSentimentClass(review)}">
+                                        <strong>Status:</strong> ${review.isFake ? '⚠️ Fake' : getStatusText(review)}
+                                        ${review.isFake ? `
+                                            <div class="technical-details">
+                                                ⚠️ Reasons: ${(review.reasons || []).join(', ') || 'No specific reasons'}
+                                                ${review.analysis?.specificity ? `
+                                                    <br>Specificity: ${review.analysis.specificity} terms
+                                                ` : ''}
+                                                ${review.analysis?.similarityScore ? `
+                                                    <br>Similarity: ${Math.round((review.analysis.similarityScore || 0) * 100)}%
+                                                ` : ''}
+                                            </div>
+                                        ` : `
+                                            <div class="technical-details">
+                                                ${getVerificationDetails(review)}
+                                                ${review.analysis?.specificity ? `
+                                                    <br>Analysis Depth: ${review.analysis.specificity} indicators
+                                                ` : ''}
+                                            </div>
+                                        `}
+                                    </div>
+                                    <small class="technical-details">
+                                        Sentiment: ${(review.sentimentScore?.toFixed(2) || '0.00')} | 
+                                        IP: ${review.ipAddress || 'Unknown'} |
+                                        ${new Date(review.createdAt).toLocaleString()}
+                                    </small>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <textarea id="review-${order._id}" 
+                            placeholder="Write your detailed review (minimum 20 characters)..."
+                            oninput="handleTextInput('${order._id}')"
+                            value="">${textareaValues.get(`review-${order._id}`) || ''}</textarea>
+                        <button onclick="submitReview('${order._id}')">Submit Review</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function handleTextInput(orderId) {
+            isWriting = true;
+            const ta = document.getElementById(`review-${orderId}`);
+            textareaValues.set(`review-${orderId}`, ta.value);
+        }
+
+        async function submitReview(orderId) {
+            const textarea = document.getElementById(`review-${orderId}`);
+            const reviewText = textarea.value.trim();
+            const button = textarea.nextElementSibling;
+            const reviewsContainer = document.getElementById(`reviews-${orderId}`);
+
+            if (!reviewText) {
+                alert('Please write a review before submitting');
+                return;
+            }
+            if (reviewText.length < 20) {
+                alert('Review must be at least 20 characters');
+                return;
+            }
+
+            try {
+                // Disable UI elements
+                textarea.disabled = true;
+                button.disabled = true;
+                
+                // Add temporary review
+                const tempReview = {
+                    reviewText,
+                    sentiment: 'Pending',
+                    analysis: { reviewDelay: Date.now() },
+                    isFake: false,
+                    reasons: []
+                };
+                
+                reviewsContainer.insertAdjacentHTML('beforeend', createReviewHTML(tempReview));
+
+                // Submit to backend
+                const response = await fetch('http://localhost:5000/api/reviews', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderId, reviewText })
+                });
+
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.message || 'Submission failed');
+                }
+
+                // Replace temporary review with actual data
+                const lastReview = reviewsContainer.lastElementChild;
+                lastReview.outerHTML = createReviewHTML(data.review);
+
+            } catch (error) {
+                // Remove temporary review on error
+                const lastReview = reviewsContainer.lastElementChild;
+                if (lastReview && lastReview.querySelector('.technical-details').textContent.includes('Pending')) {
+                    lastReview.remove();
+                }
+                alert(`Submission failed: ${error.message}`);
+            } finally {
+                textarea.disabled = false;
+                button.disabled = false;
+                textarea.value = '';
+                textareaValues.delete(`review-${orderId}`);
+                loadOrders();
+            }
+        }
+
+        function createReviewHTML(review) {
+            return `
+            <div class="review ${getReviewClass(review)} ${review.sentiment === 'Pending' ? 'pending-review' : ''}">
+                <p>${review.reviewText}</p>
+                <div class="analysis-alert ${review.isFake ? 'fake-alert' : getSentimentClass(review)}">
+                    <strong>Status:</strong> ${review.isFake ? '⚠️ Fake' : getStatusText(review)}
+                    ${review.isFake ? `
+                        <div class="technical-details">
+                            ⚠️ Reasons: ${(review.reasons || []).join(', ')}
+                        </div>
+                    ` : `
+                        <div class="technical-details">
+                            ${getVerificationDetails(review)}
+                        </div>
+                    `}
+                </div>
+                <small class="technical-details">
+                    ${review.sentiment === 'Pending' ? 'Submitting...' : new Date(review.createdAt).toLocaleString()}
+                </small>
+            </div>`;
+        }
+
+        function getReviewClass(review) {
+            if (review.isFake) return 'fake-review';
+            switch((review.sentiment || '').toLowerCase()) {
+                case 'positive': return 'positive-review';
+                case 'negative': return 'negative-review';
+                case 'neutral': return 'neutral-review';
+                default: return 'verified-review';
+            }
+        }
+
+        function getSentimentClass(review) {
+            switch((review.sentiment || '').toLowerCase()) {
+                case 'positive': return 'positive-review';
+                case 'negative': return 'negative-review';
+                case 'neutral': return 'neutral-alert';
+                default: return 'verified-alert';
+            }
+        }
+
+        function getStatusText(review) {
+            if (review.isFake) return 'Fake';
+            return `${review.sentiment} - Verified`;
+        }
+
+        function getVerificationDetails(review) {
+            switch((review.sentiment || '').toLowerCase()) {
+                case 'positive': return '⭐ Verified Positive Feedback';
+                case 'negative': return '⚠️ Verified Negative Feedback';
+                case 'neutral': return '➖ Verified Neutral Feedback';
+                default: return '✓ Genuine Review';
+            }
+        }
+
+        function showError(message) {
+            const container = document.getElementById('orders');
+            container.innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        function updateLoadingState() {
+            const container = document.getElementById('orders');
+            if (isLoading) {
+                container.innerHTML = '<div class="loading">Loading products...</div>';
+            } else if (!container.innerHTML.trim()) {
+                container.innerHTML = '<div class="error">No products found</div>';
+            }
+        }
+
+        // Initial load
+        loadOrders();
+    </script>
+</body>
+</html>
