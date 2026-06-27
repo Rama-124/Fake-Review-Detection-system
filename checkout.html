@@ -69,6 +69,7 @@
                 <div class="nav-actions">
                     <a href="shop.html" class="nav-pill">Back to Shop</a>
                     <a href="review.html" class="nav-pill">Review Dashboard</a>
+                    <span data-auth-nav></span>
                 </div>
             </div>
         </header>
@@ -109,7 +110,13 @@
             </section>
         </main>
     </div>
+    <script src="auth.js"></script>
     <script>
+        if (!requireLogin()) {
+            throw new Error('Login required');
+        }
+        renderUserNav();
+
         const urlParams = new URLSearchParams(window.location.search);
         const productName = urlParams.get('name') || 'Selected product';
         const productPrice = urlParams.get('price') || '0';
@@ -135,10 +142,14 @@
                 const response = await fetch('/api/checkout', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        ...authHeaders({ 'Content-Type': 'application/json' }),
                     },
                     body: JSON.stringify(orderDetails)
                 });
+
+                if (handleAuthFailure(response)) {
+                    return;
+                }
 
                 const data = await response.json();
 

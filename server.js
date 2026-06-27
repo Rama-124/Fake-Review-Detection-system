@@ -116,6 +116,7 @@ const userSchema = new mongoose.Schema({
 const User = mongoose.model('User', userSchema);
 
 const orderSchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     name: { type: String, required: true },
     email: { type: String, required: true },
     address: { type: String, required: true },
@@ -123,6 +124,7 @@ const orderSchema = new mongoose.Schema({
     productPrice: { type: Number, required: true },
     productImage: { type: String, required: true },
     reviews: [{
+        reviewerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         reviewText: String,
         sentiment: String,
         sentimentScore: Number,
@@ -141,6 +143,22 @@ const orderSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 const Order = mongoose.model('Order', orderSchema);
+
+function authenticateUser(req, res, next) {
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+
+    if (!token) {
+        return res.status(401).json({ success: false, message: 'Login required' });
+    }
+
+    try {
+        req.user = jwt.verify(token, SECRET_KEY);
+        next();
+    } catch (err) {
+        return res.status(401).json({ success: false, message: 'Invalid or expired login' });
+    }
+}
 
 // Auth endpoints
 app.post('/api/register', async (req, res) => {
@@ -162,16 +180,28 @@ app.post('/api/login', async (req, res) => {
         if (!user || !(await bcrypt.compare(password, user.password))) {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
-        const token = jwt.sign({ userId: user._id }, SECRET_KEY, { expiresIn: '1h' });
-        res.json({ success: true, token });
+        const token = jwt.sign(
+            { userId: user._id, email: user.email, name: user.name },
+            SECRET_KEY,
+            { expiresIn: '1h' }
+        );
+        res.json({
+            success: true,
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email
+            }
+        });
     } catch (err) {
         res.status(500).json({ success: false, message: 'Error logging in: ' + err.message });
     }
 });
 
-app.get('/api/orders', async (req, res) => {
+app.get('/api/orders', authenticateUser, async (req, res) => {
     try {
-        const orders = await Order.find().lean();
+        const orders = await Order.find({ userId: req.user.userId }).lean();
 
         const enhancedOrders = orders
             .map(order => {
@@ -400,7 +430,7 @@ function analyzeSentiment(reviewText) {
     };
 }
 
-app.post('/api/reviews', async (req, res) => {
+app.post('/api/reviews', authenticateUser, async (req, res) => {
     const { orderId, reviewText } = req.body;
     const ipAddress = req.clientIp;
 
@@ -412,10 +442,12 @@ app.post('/api/reviews', async (req, res) => {
             });
         }
 
-        const order = await Order.findById(orderId);
+        const order = await Order.findOne({ _id: orderId, userId: req.user.userId });
         if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
 
-        const existingReview = order.reviews.find(r => r.ipAddress === ipAddress);
+        const existingReview = order.reviews.find(r =>
+            String(r.reviewerId || '') === String(req.user.userId) || r.ipAddress === ipAddress
+        );
         if (existingReview) {
             return res.status(409).json({ 
                 success: false, 
@@ -520,6 +552,7 @@ app.post('/api/reviews', async (req, res) => {
         }
 
         const newReview = {
+            reviewerId: req.user.userId,
             reviewText,
             sentiment: sentimentAnalysis.sentiment,
             sentimentScore: sentimentAnalysis.score,
@@ -582,13 +615,14 @@ function formatDuration(ms) {
 }
 
 // Checkout endpoint
-app.post('/api/checkout', async (req, res) => {
+app.post('/api/checkout', authenticateUser, async (req, res) => {
     try {
         const { name, email, address, productName, productPrice, productImage } = req.body;
         if (!name || !email || !address || !productName || !productPrice || !productImage) {
             return res.status(400).json({ success: false, message: 'All fields are required' });
         }
         const newOrder = new Order({ 
+            userId: req.user.userId,
             name, 
             email, 
             address, 

@@ -89,6 +89,7 @@
             </div>
         </section>
     </div>
+    <script src="auth.js"></script>
     <script>
         document.getElementById('login-button').addEventListener('click', async () => {
             const email = document.getElementById('login-email').value;
@@ -106,7 +107,9 @@
             if (response.ok) {
                 alert('Login successful!');
                 localStorage.setItem('token', result.token);
-                window.location.href = 'shop.html';
+                localStorage.setItem('user', JSON.stringify(result.user || { email }));
+                const returnTo = new URLSearchParams(window.location.search).get('returnTo');
+                window.location.href = returnTo && returnTo.startsWith('/') ? returnTo : 'shop.html';
             } else {
                 alert(result.message);
             }

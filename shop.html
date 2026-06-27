@@ -149,7 +149,7 @@
                 <div class="nav-actions">
                     <a href="home.html" class="nav-pill">Overview</a>
                     <a href="review.html" class="nav-pill">Review Dashboard</a>
-                    <a href="checkout.html" class="nav-pill">Checkout</a>
+                    <span data-auth-nav></span>
                 </div>
             </div>
             <div class="catalog-copy">
@@ -174,7 +174,13 @@
         </main>
     </div>
 
+    <script src="auth.js"></script>
     <script>
+        if (!requireLogin()) {
+            throw new Error('Login required');
+        }
+        renderUserNav();
+
         const PRODUCTS_API_URLS = ['/api/products'];
 
         async function fetchProducts() {
@@ -222,6 +228,7 @@
                 productsContainer.appendChild(productCard);
 
                 productCard.querySelector('.buy-now').addEventListener('click', () => {
+                    if (!requireLogin()) return;
                     window.location.href = 'checkout.html?name=' + encodeURIComponent(product.title) +
                                           '&price=' + encodeURIComponent(product.price) +
                                           '&image=' + encodeURIComponent(product.image);

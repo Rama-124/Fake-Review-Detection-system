@@ -204,7 +204,7 @@
                 <div class="nav-actions">
                     <a href="home.html" class="nav-pill">Overview</a>
                     <a href="shop.html" class="nav-pill">Shop</a>
-                    <a href="login.html" class="nav-pill">Login</a>
+                    <span data-auth-nav></span>
                 </div>
             </div>
             <div class="dashboard-copy">
@@ -224,7 +224,13 @@
         </main>
     </div>
 
+    <script src="auth.js"></script>
     <script>
+        if (!requireLogin()) {
+            throw new Error('Login required');
+        }
+        renderUserNav();
+
         let isLoading = true;
         let isWriting = false;
         const textareaValues = new Map();
@@ -252,7 +258,12 @@
                 isLoading = true;
                 updateLoadingState();
 
-                const response = await fetch('/api/orders');
+                const response = await fetch('/api/orders', {
+                    headers: authHeaders()
+                });
+                if (handleAuthFailure(response)) {
+                    return;
+                }
                 const data = await response.json();
 
                 if (!response.ok || !data.success) {
@@ -359,9 +370,12 @@
 
                 const response = await fetch('/api/reviews', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: authHeaders({ 'Content-Type': 'application/json' }),
                     body: JSON.stringify({ orderId, reviewText })
                 });
+                if (handleAuthFailure(response)) {
+                    return;
+                }
 
                 const data = await response.json();
 
