@@ -160,6 +160,16 @@
             gap: 10px;
         }
 
+        .readonly-note {
+            margin-top: 16px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(22, 55, 31, 0.12);
+            background: rgba(255, 255, 255, 0.72);
+            color: var(--ink-700);
+            font-size: 0.94rem;
+        }
+
         textarea {
             width: 100%;
             padding: 14px 16px;
@@ -210,11 +220,12 @@
             <div class="dashboard-copy">
                 <div class="eyebrow" style="color:rgba(255,255,255,.76);">Live Review Monitoring</div>
                 <h1>Analyze submitted reviews and suspicious signals.</h1>
-                <p>Orders appear here after checkout. Submit reviews, inspect sentiment, and see why the system marks content as suspicious or genuine.</p>
+                <p>Browse reviews from every customer, then write reviews only for products you personally ordered.</p>
                 <div id="summary" class="summary-grid">
-                    <div class="summary-card"><strong>0</strong>Orders</div>
+                    <div class="summary-card"><strong>0</strong>Products</div>
                     <div class="summary-card"><strong>0</strong>Reviews</div>
                     <div class="summary-card"><strong>0</strong>Flagged</div>
+                    <div class="summary-card"><strong>0</strong>Your Orders</div>
                 </div>
             </div>
         </header>
@@ -293,18 +304,20 @@
             const flaggedReviews = orders.reduce((sum, order) => (
                 sum + (order.reviews || []).filter((review) => review.isFake).length
             ), 0);
+            const yourOrders = orders.filter((order) => order.canReview).length;
 
             document.getElementById('summary').innerHTML = `
-                <div class="summary-card"><strong>${orders.length}</strong>Orders</div>
+                <div class="summary-card"><strong>${orders.length}</strong>Products</div>
                 <div class="summary-card"><strong>${totalReviews}</strong>Reviews</div>
                 <div class="summary-card"><strong>${flaggedReviews}</strong>Flagged</div>
+                <div class="summary-card"><strong>${yourOrders}</strong>Your Orders</div>
             `;
         }
 
         function displayOrders(orders) {
             const container = document.getElementById('orders');
             if (!orders || orders.length === 0) {
-                return showError('No orders found yet. Place an order from the shop to begin monitoring reviews.');
+                return showError('No product reviews found yet. Place an order from the shop to add the first review.');
             }
 
             container.innerHTML = orders.map((order) => `
@@ -315,19 +328,23 @@
                         <div class="order-meta">
                             <span class="meta-chip">$${Number(order.productPrice || 0).toFixed(2)}</span>
                             <span class="meta-chip">${(order.reviews || []).length} reviews</span>
-                            <span class="meta-chip">Order ${escapeHtml(String(order._id).slice(-6))}</span>
+                            <span class="meta-chip">${escapeHtml(order.customerName || 'Customer')}</span>
                         </div>
 
                         <div id="reviews-${order._id}" class="reviews">
                             ${(order.reviews || []).map((review) => createReviewHTML(review)).join('')}
                         </div>
 
-                        <div class="review-form">
-                            <textarea id="review-${order._id}"
-                                placeholder="Write a detailed review with product-specific details..."
-                                oninput="handleTextInput('${order._id}')">${escapeHtml(textareaValues.get(`review-${order._id}`) || '')}</textarea>
-                            <button class="primary-button" onclick="submitReview('${order._id}')">Submit Review</button>
-                        </div>
+                        ${order.canReview ? `
+                            <div class="review-form">
+                                <textarea id="review-${order._id}"
+                                    placeholder="Write a detailed review with product-specific details..."
+                                    oninput="handleTextInput('${order._id}')">${escapeHtml(textareaValues.get(`review-${order._id}`) || '')}</textarea>
+                                <button class="primary-button" onclick="submitReview('${order._id}')">Submit Review</button>
+                            </div>
+                        ` : `
+                            <div class="readonly-note">You can read this product's reviews, but only the customer who placed this order can write a review.</div>
+                        `}
                     </div>
                 </article>
             `).join('');

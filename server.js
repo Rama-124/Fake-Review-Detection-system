@@ -201,10 +201,12 @@ app.post('/api/login', async (req, res) => {
 
 app.get('/api/orders', authenticateUser, async (req, res) => {
     try {
-        const orders = await Order.find({ userId: req.user.userId }).lean();
+        const orders = await Order.find().lean();
+        const activeUserId = String(req.user.userId);
 
         const enhancedOrders = orders
             .map(order => {
+                const isOwnOrder = String(order.userId || '') === activeUserId;
                 const orderCreatedAt =
                     order.createdAt ||
                     (order._id && typeof order._id.getTimestamp === 'function' ? order._id.getTimestamp() : null) ||
@@ -227,8 +229,10 @@ app.get('/api/orders', authenticateUser, async (req, res) => {
                 });
 
                 return {
-                    ...order,
+                    _id: order._id,
                     createdAt: orderCreatedAt,
+                    customerName: isOwnOrder ? 'You' : 'Customer',
+                    canReview: isOwnOrder,
                     productName: order.productName || 'Unknown Product',
                     productPrice: Number(order.productPrice) || 0,
                     productImage: order.productImage || '',

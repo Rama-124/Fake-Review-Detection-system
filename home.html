@@ -164,10 +164,10 @@
             <div class="hero-content">
                 <div class="hero-copy">
                     <div class="eyebrow">Trust Signals For Modern Commerce</div>
-                    <h1 class="section-title">Spot suspicious reviews before they shape customer decisions.</h1>
+                    <h1 class="section-title">A live review wall where every customer can read, but only buyers can write.</h1>
                     <p class="section-copy">
-                        This project combines sentiment analysis, review timing, duplicate-text detection, and IP-aware behavior checks
-                        to flag likely fake product reviews inside a simple e-commerce workflow.
+                        This project combines authenticated checkout, buyer-only review submission, sentiment analysis, review timing,
+                        duplicate-text detection, and IP-aware behavior checks inside a simple e-commerce workflow.
                     </p>
                     <div class="hero-actions">
                         <a href="shop.html" class="primary-button">Browse Products</a>
@@ -186,7 +186,7 @@
                             </div>
                             <div class="metric-box">
                                 <strong>IP</strong>
-                                One-review-per-customer signal
+                                Buyer-only review writing
                             </div>
                             <div class="metric-box">
                                 <strong>NLP</strong>
@@ -202,7 +202,7 @@
         <main class="page-grid">
             <section id="features" class="section-card panel">
                 <div class="eyebrow">Core Features</div>
-                <h2 style="margin: 10px 0 20px;">Built around the review journey, not just a static classifier.</h2>
+                <h2 style="margin: 10px 0 20px;">Built around a real customer journey, not just a static classifier.</h2>
                 <div class="feature-grid">
                     <article class="section-card feature-card">
                         <img src="about.png" alt="Analysis preview">
@@ -212,12 +212,12 @@
                     <article class="section-card feature-card">
                         <img src="feature.png" alt="Product workflow preview">
                         <h3>Integrated storefront workflow</h3>
-                        <p class="section-copy">Users can register, browse products, place an order, and submit a review that is analyzed in real time.</p>
+                        <p class="section-copy">Users can register, browse products, place an order, and write reviews only for products attached to their own account.</p>
                     </article>
                     <article class="section-card feature-card">
                         <img src="contact.png" alt="Admin dashboard preview">
                         <h3>Review monitoring dashboard</h3>
-                        <p class="section-copy">Admins can inspect sentiment, suspicious reasons, IP information, timestamps, and product-level review history.</p>
+                        <p class="section-copy">Logged-in users can inspect product-level review history from all customers while protected actions stay account-bound.</p>
                     </article>
                 </div>
             </section>
@@ -229,8 +229,8 @@
                     <div class="pill-list">
                         <div class="pill-item"><strong>1. Product intake</strong><br>External catalog data is normalized and cached.</div>
                         <div class="pill-item"><strong>2. Order capture</strong><br>Checkout events are stored in MongoDB with product metadata.</div>
-                        <div class="pill-item"><strong>3. Review analysis</strong><br>Each review is scored for sentiment, specificity, timing, and similarity.</div>
-                        <div class="pill-item"><strong>4. Decision output</strong><br>The system stores reasons and displays likely fake or genuine status.</div>
+                        <div class="pill-item"><strong>3. Buyer-only review</strong><br>The review form appears only on products ordered by the logged-in user.</div>
+                        <div class="pill-item"><strong>4. Review analysis</strong><br>Each review is scored for sentiment, specificity, timing, and similarity.</div>
                     </div>
                 </aside>
 
@@ -238,8 +238,8 @@
                     <div class="eyebrow">What This Demo Shows</div>
                     <h2 style="margin: 10px 0 12px;">A realistic prototype for trust and moderation flows.</h2>
                     <p class="section-copy">
-                        The live version focuses on a Node.js and MongoDB stack with rule-based NLP. It is ideal for demonstrating product review moderation ideas,
-                        admin visibility, and deployable architecture before layering on larger ML models.
+                        The live version focuses on a Node.js and MongoDB stack with JWT login, account-scoped ordering, buyer-only review writing,
+                        and a shared review dashboard for transparency.
                     </p>
                     <div class="status-banner" style="margin-top: 18px;">
                         Live deployment is active on Render and ready for a custom domain once you provide the domain name you want to attach.
@@ -256,7 +256,7 @@
                         <div class="eyebrow">Quick Start</div>
                         <h2 style="margin: 10px 0 12px;">Try the full flow in the live app.</h2>
                         <p class="section-copy">
-                            Create an account, browse the catalog, place a test order, and submit a review to see the monitoring engine classify the result.
+                            Create an account, browse the catalog, place a test order, and submit a review for your own order to see the monitoring engine classify the result.
                         </p>
                         <div class="hero-actions" style="margin-top: 20px;">
                             <a href="registration.html" class="primary-button">Create Account</a>
