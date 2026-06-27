@@ -11,7 +11,6 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const axios = require('axios');
-const wordList = require('word-list');
 const app = express();
 const PORT = process.env.PORT || 5000;
 const SECRET_KEY = process.env.JWT_SECRET || 'dev_secret_change_me';
@@ -20,7 +19,8 @@ const FAKESTORE_URL = 'https://fakestoreapi.com/products';
 const DUMMYJSON_URL = 'https://dummyjson.com/products?limit=100';
 const PRODUCTS_CACHE_FILE = path.join(__dirname, 'products-cache.json');
 // Load dictionary words
-const dictionaryWords = fs.readFileSync(require.resolve('word-list'), 'utf8').split('\n');
+const WORD_LIST_FILE = path.join(path.dirname(require.resolve('word-list')), 'words.txt');
+const dictionaryWords = fs.readFileSync(WORD_LIST_FILE, 'utf8').split('\n');
 
 // Enhanced NLP components
 const Analyzer = natural.SentimentAnalyzer;
