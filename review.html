@@ -141,7 +141,7 @@
                 isLoading = true;
                 updateLoadingState();
                 
-                const response = await fetch('http://localhost:5000/api/orders');
+                const response = await fetch('/api/orders');
                 const data = await response.json();
                 
                 if (!response.ok || !data.success) {
@@ -262,7 +262,7 @@
                 reviewsContainer.insertAdjacentHTML('beforeend', createReviewHTML(tempReview));
 
                 // Submit to backend
-                const response = await fetch('http://localhost:5000/api/reviews', {
+                const response = await fetch('/api/reviews', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ orderId, reviewText })

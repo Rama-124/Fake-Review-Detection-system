@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
@@ -12,7 +14,8 @@ const axios = require('axios');
 const wordList = require('word-list');
 const app = express();
 const PORT = process.env.PORT || 5000;
-const SECRET_KEY = 'your_secret_key';
+const SECRET_KEY = process.env.JWT_SECRET || 'dev_secret_change_me';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/checkoutDB';
 const FAKESTORE_URL = 'https://fakestoreapi.com/products';
 const DUMMYJSON_URL = 'https://dummyjson.com/products?limit=100';
 const PRODUCTS_CACHE_FILE = path.join(__dirname, 'products-cache.json');
@@ -95,9 +98,12 @@ app.get('/', (req, res) => {
 app.use(express.static(__dirname));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'client/build')));
+app.get('/health', (req, res) => {
+    res.json({ success: true, status: 'ok' });
+});
 
 // MongoDB connection
-mongoose.connect('mongodb://127.0.0.1:27017/checkoutDB')
+mongoose.connect(MONGODB_URI)
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.error('MongoDB connection error:', err));
 

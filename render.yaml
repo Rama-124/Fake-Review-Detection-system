@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: fake-review-monitoring-system
+    runtime: node
+    plan: free
+    healthCheckPath: /health
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_VERSION
+        value: 20.18.0
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false

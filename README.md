@@ -114,6 +114,23 @@ Useful pages:
 - Review dashboard: `http://localhost:5000/review.html`
 - Shop page: `http://localhost:5000/shop.html`
 
+## Deployment
+
+This repository includes:
+
+- `render.yaml` for Render web service setup
+- `.env.example` for required environment variables
+
+To deploy on Render:
+
+1. Push the latest code to GitHub.
+2. Create a MongoDB Atlas database and copy its connection string.
+3. In Render, create a new web service from this repository or import the included `render.yaml`.
+4. Set `MONGODB_URI` and `JWT_SECRET` in the Render environment settings.
+5. Deploy and open the generated `onrender.com` URL.
+
+The frontend now uses same-origin API calls, so the deployed site works without editing hardcoded `localhost` URLs.
+
 ## Data Model Summary
 
 The application stores:
@@ -126,11 +143,10 @@ The application stores:
 
 - The current implementation uses rule-based NLP and behavioral heuristics rather than a transformer model such as BERT.
 - Product data is pulled from public demo APIs, so availability can depend on network access.
-- The MongoDB connection string is currently hardcoded in `server.js`.
+- `server.js` now supports `MONGODB_URI` and `JWT_SECRET` through environment variables, with local fallbacks for development.
 
 ## Future Improvements
 
-- Move secrets and database configuration into environment variables
 - Add role-based admin authentication
 - Introduce model training pipelines for advanced review classification
 - Add multilingual analysis support
