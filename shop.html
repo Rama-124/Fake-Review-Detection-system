@@ -3,98 +3,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fake Store Products</title>
+    <title>Review-Aware Product Catalog</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        body {
-            margin: 0;
-            font-family: 'Arial', sans-serif;
-            background-color: #f8fff8; /* Light green background */
+        .catalog-hero {
+            padding: 8px 0 20px;
         }
-        .header {
+
+        .catalog-copy {
+            padding: 0 24px 28px;
+            color: #fff;
+        }
+
+        .catalog-copy h1 {
+            margin: 10px 0 12px;
+            font-size: clamp(2rem, 4vw, 3.2rem);
+            line-height: 1.05;
+        }
+
+        .catalog-copy p {
+            max-width: 720px;
+            margin: 0;
+            color: rgba(255, 255, 255, 0.84);
+        }
+
+        .catalog-toolbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px;
-            background-color: #2e7d32; /* Green header */
-            color: #fff;
+            gap: 16px;
+            margin: 22px 0 18px;
         }
-        h1 {
+
+        .catalog-toolbar h2 {
             margin: 0;
-            font-size: 2rem;
+            font-size: 1.45rem;
         }
-        .cart-icon-container {
-            position: relative;
+
+        .toolbar-chip {
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.86);
+            border: 1px solid var(--line);
+            color: var(--forest-800);
+            font-weight: 700;
         }
-        #cart-icon {
-            width: 40px;
-            height: 40px;
-            cursor: pointer;
-            color: #fff; /* White cart icon */
-        }
+
         .products-container {
-            padding: 20px;
-            display: flex;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             gap: 20px;
+            padding-bottom: 34px;
         }
+
         .product-card {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            width: calc(25% - 20px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
-            transition: transform 0.3s ease;
+            padding: 18px;
+            display: grid;
+            gap: 14px;
         }
+
         .product-card:hover {
-            transform: translateY(-5px); /* Lift effect on hover */
+            transform: translateY(-4px);
         }
+
+        .product-image-wrap {
+            aspect-ratio: 1 / 1;
+            display: grid;
+            place-items: center;
+            border-radius: 20px;
+            background: linear-gradient(180deg, rgba(238, 248, 240, 0.9), rgba(255,255,255,0.95));
+            padding: 18px;
+        }
+
         .product-image {
             max-width: 100%;
-            height: auto;
-            border-radius: 10px; /* Rounded corners for images */
+            max-height: 220px;
+            object-fit: contain;
         }
+
         .product-title {
-            font-size: 1.2rem;
-            margin: 10px 0;
-            color: #333; /* Dark text for product title */
+            margin: 0;
+            font-size: 1.05rem;
+            line-height: 1.45;
+            min-height: 52px;
         }
+
+        .product-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
         .product-price {
-            font-size: 1rem;
-            color: #2e7d32; /* Green text for price */
+            font-size: 1.2rem;
+            color: var(--forest-800);
+            font-weight: 800;
         }
-        .add-to-cart, .buy-now {
-            background-color: #2e7d32; /* Green button */
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 10px 15px;
+
+        .product-tag {
+            padding: 7px 10px;
+            border-radius: 999px;
+            background: rgba(74, 169, 108, 0.10);
+            color: var(--forest-800);
+            font-size: 0.84rem;
+            font-weight: 700;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .card-actions button {
+            flex: 1;
+        }
+
+        .ghost-button {
+            padding: 12px 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(22, 55, 31, 0.12);
+            background: #fff;
+            color: var(--ink-900);
+            font-weight: 700;
             cursor: pointer;
-            margin-top: 10px;
-            transition: background-color 0.3s ease;
         }
-        .add-to-cart:hover, .buy-now:hover {
-            background-color: #1b5e20; /* Darker green on hover */
+
+        .loading-state,
+        .empty-state {
+            padding: 28px;
+            text-align: center;
+            color: var(--ink-700);
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Products List</h1>
-        <div class="cart-icon-container" onclick="window.location.href='review.html'">
-            <i class="fas fa-shopping-cart" id="cart-icon"></i>
-        </div>
+    <div class="app-shell">
+        <header class="hero-bar catalog-hero">
+            <div class="hero-nav">
+                <div class="brand-mark">
+                    <span class="brand-badge"><i class="fas fa-store"></i></span>
+                    Live Product Catalog
+                </div>
+                <div class="nav-actions">
+                    <a href="home.html" class="nav-pill">Overview</a>
+                    <a href="review.html" class="nav-pill">Review Dashboard</a>
+                    <a href="checkout.html" class="nav-pill">Checkout</a>
+                </div>
+            </div>
+            <div class="catalog-copy">
+                <div class="eyebrow">Demo Storefront</div>
+                <h1>Browse products and send them through the review-monitoring flow.</h1>
+                <p>Every product can be opened for checkout, persisted as an order, and later reviewed so the backend can analyze authenticity signals.</p>
+            </div>
+        </header>
+
+        <main class="page-grid">
+            <section class="catalog-toolbar">
+                <div>
+                    <div class="eyebrow">Catalog Feed</div>
+                    <h2>Products ready for checkout and review testing</h2>
+                </div>
+                <a href="review.html" class="toolbar-chip"><i class="fas fa-chart-line"></i> View flagged reviews</a>
+            </section>
+
+            <section id="products-container" class="products-container">
+                <div class="section-card loading-state">Loading products...</div>
+            </section>
+        </main>
     </div>
 
-    <div id="products-container" class="products-container"></div>
-
     <script>
-        const PRODUCTS_API_URLS = [
-            '/api/products'
-        ];
+        const PRODUCTS_API_URLS = ['/api/products'];
 
         async function fetchProducts() {
             for (const url of PRODUCTS_API_URLS) {
@@ -122,14 +203,21 @@
             productsContainer.innerHTML = '';
 
             products.forEach(product => {
-                const productCard = document.createElement('div');
-                productCard.className = 'product-card';
+                const productCard = document.createElement('article');
+                productCard.className = 'section-card product-card';
                 productCard.innerHTML = `
-                    <img src="${product.image}" alt="${product.title}" class="product-image" />
+                    <div class="product-image-wrap">
+                        <img src="${product.image}" alt="${product.title}" class="product-image" />
+                    </div>
                     <h3 class="product-title">${product.title}</h3>
-                    <p class="product-price">$${product.price}</p>
-                    <button class="add-to-cart" data-id="${product.id}">Add to Cart</button>
-                    <button class="buy-now" data-id="${product.id}" data-title="${product.title}" data-price="${product.price}" data-image="${product.image}">Open Product</button>
+                    <div class="product-meta">
+                        <span class="product-price">$${Number(product.price).toFixed(2)}</span>
+                        <span class="product-tag">${product.category || 'general'}</span>
+                    </div>
+                    <div class="card-actions">
+                        <button class="ghost-button" type="button">Save</button>
+                        <button class="primary-button buy-now" type="button">Open Product</button>
+                    </div>
                 `;
                 productsContainer.appendChild(productCard);
 
@@ -143,14 +231,14 @@
 
         async function loadProducts() {
             const productsContainer = document.getElementById('products-container');
-            productsContainer.textContent = 'Loading products...';
+            productsContainer.innerHTML = '<div class="section-card loading-state">Loading products...</div>';
 
             try {
                 const products = await fetchProducts();
                 renderProducts(products);
             } catch (error) {
                 console.error('Error fetching products:', error);
-                productsContainer.innerHTML = '<p style="color:#b00020;font-weight:600;">Unable to load products right now. API is unreachable and no backup data is available.</p>';
+                productsContainer.innerHTML = '<div class="section-card empty-state">Unable to load products right now. The catalog API is unreachable and no backup data is available.</div>';
             }
         }
 

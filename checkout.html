@@ -6,144 +6,142 @@
     <title>Checkout</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f5fff5;
-            padding: 20px;
+        .checkout-layout {
+            display: grid;
+            grid-template-columns: 0.85fr 1.15fr;
+            gap: 24px;
+            margin-top: 26px;
         }
-        .checkout-container {
-            max-width: 600px;
-            margin: auto;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            animation: fadeIn 0.5s ease;
+
+        .product-preview {
+            padding: 24px;
         }
-        h1 {
-            text-align: center;
-            color: #2e7d32;
+
+        .product-preview img {
+            width: 100%;
+            max-height: 340px;
+            object-fit: contain;
+            border-radius: 20px;
+            background: #fff;
+            padding: 24px;
+            border: 1px solid var(--line);
         }
-        .product-info {
+
+        .price-line {
+            display: inline-block;
+            margin-top: 16px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(74, 169, 108, 0.12);
+            color: var(--forest-800);
+            font-weight: 800;
+        }
+
+        .checkout-form {
+            padding: 28px;
+        }
+
+        .form-actions {
             display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 20px;
+            gap: 12px;
+            margin-top: 8px;
         }
-        .product-info img {
-            width: 100px;
-            height: auto;
-            margin-right: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-        .product-details {
-            flex-grow: 1;
-        }
-        .product-price {
-            font-size: 1.5rem;
-            color: #2e7d32;
-        }
-        label {
-            font-weight: bold;
-            margin-top: 10px;
-            display: block;
-            color: #2e7d32;
-        }
-        input, textarea {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            resize: none;
-        }
-        input:focus, textarea:focus {
-            border-color: #2e7d32;
-            outline: none;
-        }
-        button {
-            width: 100%;
-            padding: 10px;
-            background-color: #2e7d32;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #1b5e20;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+
+        @media (max-width: 880px) {
+            .checkout-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="checkout-container">
-        <h1>Checkout</h1>
-        <div class="product-info">
-            <img id="product-image" src="" alt="Product Image" />
-            <div class="product-details">
-                <h2 id="product-title"></h2>
-                <p class="product-price" id="product-price"></p>
+    <div class="app-shell">
+        <header class="hero-bar">
+            <div class="hero-nav">
+                <div class="brand-mark">
+                    <span class="brand-badge">FR</span>
+                    Checkout
+                </div>
+                <div class="nav-actions">
+                    <a href="shop.html" class="nav-pill">Back to Shop</a>
+                    <a href="review.html" class="nav-pill">Review Dashboard</a>
+                </div>
             </div>
-        </div>
-        <form id="order-form">
-            <label for="name">Name:</label>
-            <input type="text" id="name" required />
-            
-            <label for="email">Email:</label>
-            <input type="email" id="email" required />
-            
-            <label for="address">Address:</label>
-            <textarea id="address" rows="4" required></textarea>
-            
-            <button type="submit">Place Order</button>
-        </form>
+        </header>
+
+        <main class="checkout-layout">
+            <section class="section-card product-preview">
+                <div class="eyebrow">Selected Product</div>
+                <h1 id="product-title" style="font-size:1.8rem;margin:10px 0 18px;"></h1>
+                <img id="product-image" src="" alt="Product image">
+                <div class="price-line" id="product-price"></div>
+            </section>
+
+            <section class="section-card checkout-form">
+                <div class="eyebrow">Order Details</div>
+                <h2 style="margin:10px 0 10px;">Create a test order</h2>
+                <p class="section-copy">This order becomes available in the review dashboard so you can submit and analyze a product review.</p>
+                <form id="order-form">
+                    <div class="field">
+                        <label for="name">Name</label>
+                        <input type="text" id="name" placeholder="Customer name" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" placeholder="name@example.com" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="address">Address</label>
+                        <textarea id="address" rows="4" placeholder="Delivery address" required></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="primary-button" style="flex:1;">Place Order</button>
+                        <a href="shop.html" class="secondary-button" style="color:#16371f;border-color:rgba(22,55,31,.12);background:#fff;">Cancel</a>
+                    </div>
+                </form>
+            </section>
+        </main>
     </div>
     <script>
-        // Get URL parameters
         const urlParams = new URLSearchParams(window.location.search);
-        const productName = urlParams.get('name');
-        const productPrice = urlParams.get('price');
-        const productImage = urlParams.get('image');
+        const productName = urlParams.get('name') || 'Selected product';
+        const productPrice = urlParams.get('price') || '0';
+        const productImage = urlParams.get('image') || '';
 
-        // Populate product details
         document.getElementById('product-title').innerText = productName;
-        document.getElementById('product-price').innerText = `$${productPrice}`;
+        document.getElementById('product-price').innerText = `$${Number(productPrice).toFixed(2)}`;
         document.getElementById('product-image').src = productImage;
 
-        // Enhanced form submission handler
         document.getElementById('order-form').addEventListener('submit', async (event) => {
             event.preventDefault();
-            
-            // Trim input values
+
             const orderDetails = {
                 name: document.getElementById('name').value.trim(),
                 email: document.getElementById('email').value.trim(),
                 address: document.getElementById('address').value.trim(),
-                productName: productName,
-                productPrice: productPrice,
-                productImage: productImage
+                productName,
+                productPrice,
+                productImage
             };
 
             try {
                 const response = await fetch('/api/checkout', {
                     method: 'POST',
-                    headers: { 
+                    headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(orderDetails)
                 });
 
                 const data = await response.json();
-                
+
                 if (!response.ok) {
                     throw new Error(data.message || 'Failed to place order');
                 }
@@ -153,8 +151,6 @@
             } catch (error) {
                 console.error('Error:', error);
                 alert(`Error: ${error.message}`);
-                // Optional: Reset form or highlight invalid fields
-                document.getElementById('order-form').reset();
             }
         });
     </script>

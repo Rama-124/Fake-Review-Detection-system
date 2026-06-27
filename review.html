@@ -3,162 +3,272 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Review Analysis</title>
+    <title>Review Monitoring Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
     <style>
-        body {
+        .dashboard-header {
+            padding: 8px 0 22px;
+        }
+
+        .dashboard-copy {
+            padding: 0 24px 28px;
+            color: #fff;
+        }
+
+        .dashboard-copy h1 {
+            margin: 10px 0 10px;
+            font-size: 2.4rem;
+        }
+
+        .dashboard-copy p {
             margin: 0;
-            padding: 20px;
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
+            max-width: 760px;
+            color: rgba(255, 255, 255, 0.82);
+            line-height: 1.7;
         }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 14px;
+            margin-top: 22px;
+        }
+
+        .summary-card {
+            padding: 18px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+        }
+
+        .summary-card strong {
+            display: block;
+            font-size: 1.8rem;
+            margin-bottom: 4px;
+        }
+
+        .orders-list {
+            display: grid;
+            gap: 18px;
+            margin: 26px 0 40px;
+        }
+
         .order {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            display: flex;
+            display: grid;
+            grid-template-columns: 170px 1fr;
             gap: 20px;
+            padding: 20px;
         }
+
         .order img {
-            width: 150px;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 8px;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            object-fit: contain;
+            border-radius: 18px;
+            background: #fff;
+            border: 1px solid var(--line);
+            padding: 14px;
         }
+
+        .order h2 {
+            margin: 0 0 8px;
+            font-size: 1.35rem;
+        }
+
+        .order-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 16px;
+            color: var(--ink-700);
+        }
+
+        .meta-chip {
+            padding: 7px 10px;
+            border-radius: 999px;
+            background: rgba(74, 169, 108, 0.10);
+            color: var(--forest-800);
+            font-size: 0.86rem;
+            font-weight: 700;
+        }
+
+        .reviews {
+            display: grid;
+            gap: 12px;
+        }
+
         .review {
-            padding: 15px;
-            margin: 10px 0;
-            border-left: 4px solid #ddd;
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.82);
         }
+
+        .review p {
+            margin: 0 0 10px;
+            line-height: 1.55;
+        }
+
         .fake-review {
-            border-color: #ff4444;
-            background-color: #ffe6e6;
+            border-color: rgba(184, 52, 52, 0.28);
+            background: rgba(255, 238, 238, 0.92);
         }
-        .verified-review {
-            border-color: #00c851;
-            background-color: #e8f5e9;
-        }
+
         .positive-review {
-            border-color: #17a2b8;
-            background-color: #e3f2fd;
+            border-color: rgba(46, 107, 63, 0.24);
         }
+
         .negative-review {
-            border-color: #ffc107;
-            background-color: #fff3cd;
+            border-color: rgba(188, 130, 25, 0.28);
         }
+
         .neutral-review {
-            border-color: #6c757d;
-            background-color: #f8f9fa;
+            border-color: rgba(68, 81, 73, 0.18);
         }
+
         .analysis-alert {
-            padding: 8px;
-            margin-top: 5px;
-            border-radius: 4px;
-        }
-        .fake-alert {
-            color: #cc0000;
-            background-color: #ffebeb;
-        }
-        .verified-alert {
-            color: #007a3d;
-            background-color: #e8f5e9;
-        }
-        .neutral-alert {
-            color: #6c757d;
-            background-color: #f8f9fa;
-        }
-        .technical-details {
-            color: #666;
-            font-size: 0.9em;
+            padding: 10px 12px;
+            border-radius: 12px;
             margin-top: 8px;
+            background: rgba(255, 255, 255, 0.72);
         }
+
+        .fake-alert {
+            color: #8d2222;
+            background: rgba(255, 230, 230, 0.92);
+        }
+
+        .verified-alert {
+            color: var(--forest-800);
+            background: rgba(74, 169, 108, 0.12);
+        }
+
+        .neutral-alert {
+            color: var(--ink-700);
+            background: rgba(68, 81, 73, 0.08);
+        }
+
+        .technical-details {
+            color: var(--ink-700);
+            font-size: 0.9rem;
+            line-height: 1.55;
+        }
+
+        .review-form {
+            margin-top: 16px;
+            display: grid;
+            gap: 10px;
+        }
+
         textarea {
             width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            min-height: 100px;
+            padding: 14px 16px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            min-height: 110px;
+            resize: vertical;
+            font: inherit;
         }
-        button {
-            background: #007bff;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-        button:hover {
-            background: #0056b3;
-        }
-        .error {
-            color: #dc3545;
-            padding: 15px;
-            margin: 20px 0;
-            border: 1px solid #f5c6cb;
-            border-radius: 4px;
-            background: #f8d7da;
-        }
+
+        .error,
         .loading {
+            padding: 24px;
             text-align: center;
-            padding: 20px;
-            color: #666;
+            color: var(--ink-700);
         }
-        .preserve-scroll {
-            scroll-behavior: auto !important;
+
+        .error {
+            color: #8d2222;
         }
+
         .pending-review {
-            opacity: 0.7;
+            opacity: 0.75;
             border-style: dashed;
+        }
+
+        @media (max-width: 760px) {
+            .order {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Product Review Analysis</h1>
-    <div id="orders">
-        <div class="loading">Loading products...</div>
+    <div class="app-shell">
+        <header class="hero-bar dashboard-header">
+            <div class="hero-nav">
+                <div class="brand-mark">
+                    <span class="brand-badge">FR</span>
+                    Review Dashboard
+                </div>
+                <div class="nav-actions">
+                    <a href="home.html" class="nav-pill">Overview</a>
+                    <a href="shop.html" class="nav-pill">Shop</a>
+                    <a href="login.html" class="nav-pill">Login</a>
+                </div>
+            </div>
+            <div class="dashboard-copy">
+                <div class="eyebrow" style="color:rgba(255,255,255,.76);">Live Review Monitoring</div>
+                <h1>Analyze submitted reviews and suspicious signals.</h1>
+                <p>Orders appear here after checkout. Submit reviews, inspect sentiment, and see why the system marks content as suspicious or genuine.</p>
+                <div id="summary" class="summary-grid">
+                    <div class="summary-card"><strong>0</strong>Orders</div>
+                    <div class="summary-card"><strong>0</strong>Reviews</div>
+                    <div class="summary-card"><strong>0</strong>Flagged</div>
+                </div>
+            </div>
+        </header>
+
+        <main id="orders" class="orders-list">
+            <div class="section-card loading">Loading reviews...</div>
+        </main>
     </div>
 
     <script>
         let isLoading = true;
         let isWriting = false;
-        let savedScrollPosition = 0;
         const textareaValues = new Map();
+
+        function escapeHtml(value) {
+            return String(value || '').replace(/[&<>"']/g, (char) => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            }[char]));
+        }
 
         async function loadOrders() {
             try {
                 if (isWriting) return;
 
-                // Save current state
                 const scrollPosition = window.scrollY;
                 const tempValues = new Map();
-                document.querySelectorAll('textarea').forEach(ta => {
-                    tempValues.set(ta.id, ta.value);
+                document.querySelectorAll('textarea').forEach((textarea) => {
+                    tempValues.set(textarea.id, textarea.value);
                 });
 
                 isLoading = true;
                 updateLoadingState();
-                
+
                 const response = await fetch('/api/orders');
                 const data = await response.json();
-                
+
                 if (!response.ok || !data.success) {
                     throw new Error(data.message || 'Failed to load orders');
                 }
 
+                displaySummary(data.orders);
                 displayOrders(data.orders);
 
-                // Restore values after render
                 requestAnimationFrame(() => {
-                    data.orders.forEach(order => {
-                        const ta = document.getElementById(`review-${order._id}`);
-                        if (ta) ta.value = tempValues.get(`review-${order._id}`) || '';
+                    data.orders.forEach((order) => {
+                        const textarea = document.getElementById(`review-${order._id}`);
+                        if (textarea) textarea.value = tempValues.get(`review-${order._id}`) || '';
                     });
                     window.scrollTo(0, scrollPosition);
                 });
-
             } catch (error) {
                 showError(`Error loading reviews: ${error.message}`);
             } finally {
@@ -167,67 +277,55 @@
             }
         }
 
+        function displaySummary(orders) {
+            const totalReviews = orders.reduce((sum, order) => sum + (order.reviews || []).length, 0);
+            const flaggedReviews = orders.reduce((sum, order) => (
+                sum + (order.reviews || []).filter((review) => review.isFake).length
+            ), 0);
+
+            document.getElementById('summary').innerHTML = `
+                <div class="summary-card"><strong>${orders.length}</strong>Orders</div>
+                <div class="summary-card"><strong>${totalReviews}</strong>Reviews</div>
+                <div class="summary-card"><strong>${flaggedReviews}</strong>Flagged</div>
+            `;
+        }
+
         function displayOrders(orders) {
             const container = document.getElementById('orders');
             if (!orders || orders.length === 0) {
-                return showError('No products found');
+                return showError('No orders found yet. Place an order from the shop to begin monitoring reviews.');
             }
 
-            container.innerHTML = orders.map(order => `
-                <div class="order">
-                    <img src="${order.productImage}" alt="${order.productName}">
+            container.innerHTML = orders.map((order) => `
+                <article class="section-card order">
+                    <img src="${escapeHtml(order.productImage)}" alt="${escapeHtml(order.productName)}">
                     <div>
-                        <h2>${order.productName}</h2>
-                        <p>Price: $${order.productPrice?.toFixed(2) || 'N/A'}</p>
-                        
-                        <div id="reviews-${order._id}">
-                            ${(order.reviews || []).map(review => `
-                                <div class="review ${getReviewClass(review)}">
-                                    <p>${review.reviewText || ''}</p>
-                                    <div class="analysis-alert ${review.isFake ? 'fake-alert' : getSentimentClass(review)}">
-                                        <strong>Status:</strong> ${review.isFake ? '⚠️ Fake' : getStatusText(review)}
-                                        ${review.isFake ? `
-                                            <div class="technical-details">
-                                                ⚠️ Reasons: ${(review.reasons || []).join(', ') || 'No specific reasons'}
-                                                ${review.analysis?.specificity ? `
-                                                    <br>Specificity: ${review.analysis.specificity} terms
-                                                ` : ''}
-                                                ${review.analysis?.similarityScore ? `
-                                                    <br>Similarity: ${Math.round((review.analysis.similarityScore || 0) * 100)}%
-                                                ` : ''}
-                                            </div>
-                                        ` : `
-                                            <div class="technical-details">
-                                                ${getVerificationDetails(review)}
-                                                ${review.analysis?.specificity ? `
-                                                    <br>Analysis Depth: ${review.analysis.specificity} indicators
-                                                ` : ''}
-                                            </div>
-                                        `}
-                                    </div>
-                                    <small class="technical-details">
-                                        Sentiment: ${(review.sentimentScore?.toFixed(2) || '0.00')} | 
-                                        IP: ${review.ipAddress || 'Unknown'} |
-                                        ${new Date(review.createdAt).toLocaleString()}
-                                    </small>
-                                </div>
-                            `).join('')}
+                        <h2>${escapeHtml(order.productName)}</h2>
+                        <div class="order-meta">
+                            <span class="meta-chip">$${Number(order.productPrice || 0).toFixed(2)}</span>
+                            <span class="meta-chip">${(order.reviews || []).length} reviews</span>
+                            <span class="meta-chip">Order ${escapeHtml(String(order._id).slice(-6))}</span>
                         </div>
-                        
-                        <textarea id="review-${order._id}" 
-                            placeholder="Write your detailed review (minimum 20 characters)..."
-                            oninput="handleTextInput('${order._id}')"
-                            value="">${textareaValues.get(`review-${order._id}`) || ''}</textarea>
-                        <button onclick="submitReview('${order._id}')">Submit Review</button>
+
+                        <div id="reviews-${order._id}" class="reviews">
+                            ${(order.reviews || []).map((review) => createReviewHTML(review)).join('')}
+                        </div>
+
+                        <div class="review-form">
+                            <textarea id="review-${order._id}"
+                                placeholder="Write a detailed review with product-specific details..."
+                                oninput="handleTextInput('${order._id}')">${escapeHtml(textareaValues.get(`review-${order._id}`) || '')}</textarea>
+                            <button class="primary-button" onclick="submitReview('${order._id}')">Submit Review</button>
+                        </div>
                     </div>
-                </div>
+                </article>
             `).join('');
         }
 
         function handleTextInput(orderId) {
             isWriting = true;
-            const ta = document.getElementById(`review-${orderId}`);
-            textareaValues.set(`review-${orderId}`, ta.value);
+            const textarea = document.getElementById(`review-${orderId}`);
+            textareaValues.set(`review-${orderId}`, textarea.value);
         }
 
         async function submitReview(orderId) {
@@ -246,11 +344,9 @@
             }
 
             try {
-                // Disable UI elements
                 textarea.disabled = true;
                 button.disabled = true;
-                
-                // Add temporary review
+
                 const tempReview = {
                     reviewText,
                     sentiment: 'Pending',
@@ -258,10 +354,9 @@
                     isFake: false,
                     reasons: []
                 };
-                
+
                 reviewsContainer.insertAdjacentHTML('beforeend', createReviewHTML(tempReview));
 
-                // Submit to backend
                 const response = await fetch('/api/reviews', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -269,19 +364,16 @@
                 });
 
                 const data = await response.json();
-                
+
                 if (!response.ok) {
                     throw new Error(data.message || 'Submission failed');
                 }
 
-                // Replace temporary review with actual data
                 const lastReview = reviewsContainer.lastElementChild;
                 lastReview.outerHTML = createReviewHTML(data.review);
-
             } catch (error) {
-                // Remove temporary review on error
                 const lastReview = reviewsContainer.lastElementChild;
-                if (lastReview && lastReview.querySelector('.technical-details').textContent.includes('Pending')) {
+                if (lastReview && lastReview.textContent.includes('Submitting')) {
                     lastReview.remove();
                 }
                 alert(`Submission failed: ${error.message}`);
@@ -290,30 +382,37 @@
                 button.disabled = false;
                 textarea.value = '';
                 textareaValues.delete(`review-${orderId}`);
+                isWriting = false;
                 loadOrders();
             }
         }
 
         function createReviewHTML(review) {
+            const reasons = (review.reasons || []).map(escapeHtml).join(', ') || 'No specific reasons';
+            const specificity = review.analysis?.specificity ? `<br>Specificity: ${review.analysis.specificity} terms` : '';
+            const similarity = review.analysis?.similarityScore ? `<br>Similarity: ${Math.round((review.analysis.similarityScore || 0) * 100)}%` : '';
+
             return `
-            <div class="review ${getReviewClass(review)} ${review.sentiment === 'Pending' ? 'pending-review' : ''}">
-                <p>${review.reviewText}</p>
-                <div class="analysis-alert ${review.isFake ? 'fake-alert' : getSentimentClass(review)}">
-                    <strong>Status:</strong> ${review.isFake ? '⚠️ Fake' : getStatusText(review)}
-                    ${review.isFake ? `
-                        <div class="technical-details">
-                            ⚠️ Reasons: ${(review.reasons || []).join(', ')}
-                        </div>
-                    ` : `
-                        <div class="technical-details">
-                            ${getVerificationDetails(review)}
-                        </div>
-                    `}
-                </div>
-                <small class="technical-details">
-                    ${review.sentiment === 'Pending' ? 'Submitting...' : new Date(review.createdAt).toLocaleString()}
-                </small>
-            </div>`;
+                <div class="review ${getReviewClass(review)} ${review.sentiment === 'Pending' ? 'pending-review' : ''}">
+                    <p>${escapeHtml(review.reviewText)}</p>
+                    <div class="analysis-alert ${review.isFake ? 'fake-alert' : getSentimentClass(review)}">
+                        <strong>Status:</strong> ${review.isFake ? 'Flagged as suspicious' : getStatusText(review)}
+                        ${review.isFake ? `
+                            <div class="technical-details">
+                                Reasons: ${reasons}${specificity}${similarity}
+                            </div>
+                        ` : `
+                            <div class="technical-details">
+                                ${getVerificationDetails(review)}${specificity}
+                            </div>
+                        `}
+                    </div>
+                    <small class="technical-details">
+                        ${review.sentiment === 'Pending'
+                            ? 'Submitting...'
+                            : `Sentiment: ${Number(review.sentimentScore || 0).toFixed(2)} | IP: ${escapeHtml(review.ipAddress || 'Unknown')} | ${new Date(review.createdAt).toLocaleString()}`}
+                    </small>
+                </div>`;
         }
 
         function getReviewClass(review) {
@@ -328,42 +427,39 @@
 
         function getSentimentClass(review) {
             switch((review.sentiment || '').toLowerCase()) {
-                case 'positive': return 'positive-review';
-                case 'negative': return 'negative-review';
                 case 'neutral': return 'neutral-alert';
                 default: return 'verified-alert';
             }
         }
 
         function getStatusText(review) {
-            if (review.isFake) return 'Fake';
-            return `${review.sentiment} - Verified`;
+            if (review.isFake) return 'Flagged';
+            return `${escapeHtml(review.sentiment || 'Review')} - Verified`;
         }
 
         function getVerificationDetails(review) {
             switch((review.sentiment || '').toLowerCase()) {
-                case 'positive': return '⭐ Verified Positive Feedback';
-                case 'negative': return '⚠️ Verified Negative Feedback';
-                case 'neutral': return '➖ Verified Neutral Feedback';
-                default: return '✓ Genuine Review';
+                case 'positive': return 'Verified positive feedback';
+                case 'negative': return 'Verified negative feedback';
+                case 'neutral': return 'Verified neutral feedback';
+                default: return 'Genuine review';
             }
         }
 
         function showError(message) {
             const container = document.getElementById('orders');
-            container.innerHTML = `<div class="error">${message}</div>`;
+            container.innerHTML = `<div class="section-card error">${escapeHtml(message)}</div>`;
         }
 
         function updateLoadingState() {
             const container = document.getElementById('orders');
             if (isLoading) {
-                container.innerHTML = '<div class="loading">Loading products...</div>';
+                container.innerHTML = '<div class="section-card loading">Loading reviews...</div>';
             } else if (!container.innerHTML.trim()) {
-                container.innerHTML = '<div class="error">No products found</div>';
+                container.innerHTML = '<div class="section-card error">No orders found</div>';
             }
         }
 
-        // Initial load
         loadOrders();
     </script>
 </body>

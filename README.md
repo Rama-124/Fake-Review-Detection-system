@@ -131,6 +131,19 @@ To deploy on Render:
 
 The frontend now uses same-origin API calls, so the deployed site works without editing hardcoded `localhost` URLs.
 
+### Custom Domain on Render
+
+After the Render service is live, attach a custom domain from the Render dashboard:
+
+1. Open the Render web service.
+2. Go to `Settings` > `Custom Domains`.
+3. Add your domain, for example `reviews.example.com`.
+4. Copy the DNS target Render provides.
+5. In your domain registrar, add the required DNS record.
+6. Wait for DNS verification, then use the HTTPS URL Render issues.
+
+Use a `CNAME` record for a subdomain such as `reviews.example.com`. For a root domain such as `example.com`, follow Render's `A` or `ALIAS/ANAME` instructions shown in the dashboard.
+
 ## Data Model Summary
 
 The application stores:
