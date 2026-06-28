@@ -2,6 +2,11 @@
 
 This project is a Node.js and MongoDB web application for monitoring suspicious product reviews in an e-commerce-style workflow. It lets users browse products, place sample orders, submit reviews, and analyze those reviews using sentiment scoring, text heuristics, and behavioral checks such as review timing, repeated wording, IP tracking, and suspicious language patterns.
 
+## Live Deployment
+
+- Live website: [https://fake-review-detection-system-barb.onrender.com](https://fake-review-detection-system-barb.onrender.com)
+- Review dashboard: [https://fake-review-detection-system-barb.onrender.com/review.html](https://fake-review-detection-system-barb.onrender.com/review.html)
+
 ## Overview
 
 The system is designed to demonstrate how fake review detection can be integrated into an online shopping experience. Instead of using a static dataset alone, the application simulates the full review lifecycle:
@@ -167,4 +172,4 @@ The application stores:
 
 ## License
 
-This project currently does not declare a license in `package.json`. Add one if you plan to distribute it publicly.
+This project is licensed under the `ISC` license, as declared in `package.json`.
