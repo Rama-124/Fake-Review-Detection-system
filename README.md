@@ -172,4 +172,4 @@ The application stores:
 
 ## License
 
-This project is licensed under the `ISC` license, as declared in `package.json`.
+This project is licensed under the `MIT` license. See `LICENSE` for details.
