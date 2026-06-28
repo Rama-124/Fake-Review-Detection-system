@@ -109,6 +109,16 @@
             line-height: 1.55;
         }
 
+        .review-author {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 8px;
+            color: var(--forest-800);
+            font-size: 0.9rem;
+            font-weight: 800;
+        }
+
         .fake-review {
             border-color: rgba(184, 52, 52, 0.28);
             background: rgba(255, 238, 238, 0.92);
@@ -343,7 +353,9 @@
                                 <button class="primary-button" onclick="submitReview('${order._id}')">Submit Review</button>
                             </div>
                         ` : `
-                            <div class="readonly-note">You can read this product's reviews, but only the customer who placed this order can write a review.</div>
+                            <div class="readonly-note">${order.isOwnOrder
+                                ? 'You already reviewed this order. You can still read every review here.'
+                                : "You can read this product's reviews, but only the customer who placed this order can write a review."}</div>
                         `}
                     </div>
                 </article>
@@ -425,6 +437,7 @@
 
             return `
                 <div class="review ${getReviewClass(review)} ${review.sentiment === 'Pending' ? 'pending-review' : ''}">
+                    <div class="review-author">Reviewer: ${escapeHtml(review.reviewerName || 'Customer')}</div>
                     <p>${escapeHtml(review.reviewText)}</p>
                     <div class="analysis-alert ${review.isFake ? 'fake-alert' : getSentimentClass(review)}">
                         <strong>Status:</strong> ${review.isFake ? 'Flagged as suspicious' : getStatusText(review)}
@@ -441,7 +454,7 @@
                     <small class="technical-details">
                         ${review.sentiment === 'Pending'
                             ? 'Submitting...'
-                            : `Sentiment: ${Number(review.sentimentScore || 0).toFixed(2)} | IP: ${escapeHtml(review.ipAddress || 'Unknown')} | ${new Date(review.createdAt).toLocaleString()}`}
+                            : `Sentiment: ${Number(review.sentimentScore || 0).toFixed(2)} | ${new Date(review.createdAt).toLocaleString()}`}
                     </small>
                 </div>`;
         }

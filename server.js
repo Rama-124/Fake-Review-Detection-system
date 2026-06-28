@@ -125,6 +125,7 @@ const orderSchema = new mongoose.Schema({
     productImage: { type: String, required: true },
     reviews: [{
         reviewerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        reviewerName: String,
         reviewText: String,
         sentiment: String,
         sentimentScore: Number,
@@ -203,10 +204,13 @@ app.get('/api/orders', authenticateUser, async (req, res) => {
     try {
         const orders = await Order.find().lean();
         const activeUserId = String(req.user.userId);
+        const activeUserEmail = String(req.user.email || '').toLowerCase();
 
         const enhancedOrders = orders
             .map(order => {
-                const isOwnOrder = String(order.userId || '') === activeUserId;
+                const isOwnOrder =
+                    String(order.userId || '') === activeUserId ||
+                    String(order.email || '').toLowerCase() === activeUserEmail;
                 const orderCreatedAt =
                     order.createdAt ||
                     (order._id && typeof order._id.getTimestamp === 'function' ? order._id.getTimestamp() : null) ||
@@ -214,11 +218,12 @@ app.get('/api/orders', authenticateUser, async (req, res) => {
 
                 const normalizedReviews = (Array.isArray(order.reviews) ? order.reviews : []).map(review => {
                     const reviewCreatedAt = review.createdAt || orderCreatedAt;
+                    const isCurrentUserReview = String(review.reviewerId || '') === activeUserId;
                     return {
+                        reviewerName: isCurrentUserReview ? 'You' : (review.reviewerName || 'Customer'),
                         reviewText: review.reviewText || review.text || '',
                         sentiment: review.sentiment || 'Neutral',
                         sentimentScore: typeof review.sentimentScore === 'number' ? review.sentimentScore : 0,
-                        ipAddress: review.ipAddress || 'Unknown',
                         isFake: typeof review.isFake === 'boolean' ? review.isFake : false,
                         reasons: Array.isArray(review.reasons) ? review.reasons : [],
                         analysis: review.analysis || {},
@@ -227,12 +232,17 @@ app.get('/api/orders', authenticateUser, async (req, res) => {
                         submittedAt: reviewCreatedAt
                     };
                 });
+                const hasUserReview = (Array.isArray(order.reviews) ? order.reviews : []).some(review =>
+                    String(review.reviewerId || '') === activeUserId ||
+                    (isOwnOrder && !review.reviewerId && review.ipAddress === req.clientIp)
+                );
 
                 return {
                     _id: order._id,
                     createdAt: orderCreatedAt,
                     customerName: isOwnOrder ? 'You' : 'Customer',
-                    canReview: isOwnOrder,
+                    isOwnOrder,
+                    canReview: isOwnOrder && !hasUserReview,
                     productName: order.productName || 'Unknown Product',
                     productPrice: Number(order.productPrice) || 0,
                     productImage: order.productImage || '',
@@ -446,11 +456,19 @@ app.post('/api/reviews', authenticateUser, async (req, res) => {
             });
         }
 
-        const order = await Order.findOne({ _id: orderId, userId: req.user.userId });
+        const order = await Order.findById(orderId);
         if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
 
+        const ownsOrder =
+            String(order.userId || '') === String(req.user.userId) ||
+            String(order.email || '').toLowerCase() === String(req.user.email || '').toLowerCase();
+        if (!ownsOrder) {
+            return res.status(403).json({ success: false, message: 'You can only review products you ordered' });
+        }
+
         const existingReview = order.reviews.find(r =>
-            String(r.reviewerId || '') === String(req.user.userId) || r.ipAddress === ipAddress
+            String(r.reviewerId || '') === String(req.user.userId) ||
+            (!r.reviewerId && r.ipAddress === ipAddress)
         );
         if (existingReview) {
             return res.status(409).json({ 
@@ -557,6 +575,7 @@ app.post('/api/reviews', authenticateUser, async (req, res) => {
 
         const newReview = {
             reviewerId: req.user.userId,
+            reviewerName: req.user.name || req.user.email || 'Customer',
             reviewText,
             sentiment: sentimentAnalysis.sentiment,
             sentimentScore: sentimentAnalysis.score,
