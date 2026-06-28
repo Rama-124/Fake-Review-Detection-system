@@ -217,8 +217,8 @@
                     </div>
                     <h3 class="product-title">${product.title}</h3>
                     <div class="product-meta">
-                        <span class="product-price">$${Number(product.price).toFixed(2)}</span>
-                        <span class="product-tag">${product.category || 'general'}</span>
+                    <span class="product-price">$${Number(product.price).toFixed(2)}</span>
+                    <span class="product-tag">${product.category || 'general'}</span>
                     </div>
                     <div class="card-actions">
                         <button class="ghost-button" type="button">Save</button>
@@ -231,7 +231,8 @@
                     if (!requireLogin()) return;
                     window.location.href = 'checkout.html?name=' + encodeURIComponent(product.title) +
                                           '&price=' + encodeURIComponent(product.price) +
-                                          '&image=' + encodeURIComponent(product.image);
+                                          '&image=' + encodeURIComponent(product.image) +
+                                          '&category=' + encodeURIComponent(product.category || 'general');
                 });
             });
         }

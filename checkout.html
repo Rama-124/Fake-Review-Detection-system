@@ -121,6 +121,7 @@
         const productName = urlParams.get('name') || 'Selected product';
         const productPrice = urlParams.get('price') || '0';
         const productImage = urlParams.get('image') || '';
+        const productCategory = urlParams.get('category') || 'general';
 
         document.getElementById('product-title').innerText = productName;
         document.getElementById('product-price').innerText = `$${Number(productPrice).toFixed(2)}`;
@@ -135,7 +136,8 @@
                 address: document.getElementById('address').value.trim(),
                 productName,
                 productPrice,
-                productImage
+                productImage,
+                productCategory
             };
 
             try {

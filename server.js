@@ -64,10 +64,19 @@ const DETECTION_CONFIG = {
   ]),
 
   timeThresholds: {
-    electronics: 1800000,  // 30 minutes
-    clothing: 900000,     // 25 minutes
-    books: 1200000,       // 20 minutes
-    general: 1200000      // 20 minutes
+    groceries: 600000,
+    beauty: 1800000,
+    fragrances: 1800000,
+    furniture: 7200000,
+    homeDecoration: 3600000,
+    kitchenAccessories: 2700000,
+    electronics: 3600000,
+    laptops: 3600000,
+    clothing: 1500000,
+    shoes: 1800000,
+    watches: 3600000,
+    books: 1200000,
+    general: 1200000
   },
 
   specificity: {
@@ -123,6 +132,7 @@ const orderSchema = new mongoose.Schema({
     productName: { type: String, required: true },
     productPrice: { type: Number, required: true },
     productImage: { type: String, required: true },
+    productCategory: { type: String, default: 'general' },
     reviews: [{
         reviewerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         reviewerName: String,
@@ -246,6 +256,7 @@ app.get('/api/orders', authenticateUser, async (req, res) => {
                     productName: order.productName || 'Unknown Product',
                     productPrice: Number(order.productPrice) || 0,
                     productImage: order.productImage || '',
+                    productCategory: order.productCategory || getProductCategory(order.productName),
                     reviews: normalizedReviews
                 };
             })
@@ -521,11 +532,11 @@ app.post('/api/reviews', authenticateUser, async (req, res) => {
         const reasons = [];
 
         // Category-aware time thresholds
-        const productCategory = getProductCategory(order.productName);
+        const productCategory = getProductCategory(order.productName, order.productCategory);
         const effectiveThreshold = DETECTION_CONFIG.timeThresholds[productCategory] 
                                  || DETECTION_CONFIG.timeThresholds.general;
         if (analysis.reviewDelay < effectiveThreshold) {
-            reasons.push(`Reviewed ${formatDuration(analysis.reviewDelay)} after purchase`);
+            reasons.push(`${formatCategoryLabel(productCategory)} reviews need at least ${formatDuration(effectiveThreshold)} after purchase; submitted after ${formatDuration(analysis.reviewDelay)}`);
             isFake = true;
             linguisticFlags.push('Rushed review');
         }
@@ -615,12 +626,24 @@ app.post('/api/reviews', authenticateUser, async (req, res) => {
 });
 
 // Helper functions
-function getProductCategory(productName) {
+function getProductCategory(productName, productCategory = '') {
+    const normalizedCategory = normalizeProductCategory(productCategory);
+    if (normalizedCategory !== 'general') {
+        return normalizedCategory;
+    }
+
     const categories = {
-        electronics: /\b(phone|smartphone|tablet|laptop|computer|tv|headphones|earbuds|camera|charger|battery)\b/i,
+        groceries: /\b(apple|beef|steak|chicken|fish|meat|oil|cucumber|eggs|pepper|honey|ice cream|juice|kiwi|lemon|milk|rice|water|potatoes|onions|strawberry|coffee|food)\b/i,
+        beauty: /\b(mascara|eyeshadow|powder|lipstick|nail|shampoo|conditioner|moisturizer|cosmetic|makeup|skincare|deodorant)\b/i,
+        fragrances: /\b(perfume|fragrance|cologne|eau de|dior|gucci|chanel|calvin klein)\b/i,
+        furniture: /\b(furniture|sofa|chair|table|bed|mattress|conference chair|sink|mirror)\b/i,
+        homeDecoration: /\b(decor|decoration|photo frame|showpiece|plant pot|table lamp|swing)\b/i,
+        kitchenAccessories: /\b(kitchen|spatula|cup|whisk|blender|wok|board|squeezer|slicer|stove|strainer|fork|glass|grater|knife|lunch box|microwave|pan|plate|pot|spice|spoon|tray|peeler)\b/i,
+        laptops: /\b(laptop|macbook|zenbook|matebook|yoga|xps)\b/i,
+        electronics: /\b(phone|smartphone|tablet|computer|tv|headphones|earbuds|camera|charger|battery|echo|airpods)\b/i,
         clothing: /\b(shirt|blouse|top|tee|t-shirt|polo|dress|jeans|pants|skirt|jacket|hoodie|sweater|apparel|wear)\b/i,
-        home: /\b(furniture|sofa|chair|table|bed|mattress|pillow|blanket|curtain|rug|decor|kitchen|appliance)\b/i,
-        beauty: /\b(shampoo|conditioner|moisturizer|cosmetic|makeup|skincare|fragrance|perfume|deodorant)\b/i,
+        shoes: /\b(shoe|shoes|sneaker|sneakers|trainer|trainers|cleats|air jordan)\b/i,
+        watches: /\b(watch|watches|rolex|longines|submariner|datejust)\b/i,
         books: /\b(book|novel|textbook|magazine|ebook|audiobook|publication|literature)\b/i
     };
 
@@ -628,6 +651,41 @@ function getProductCategory(productName) {
         if (pattern.test(productName.toLowerCase())) return category;
     }
     return 'general';
+}
+
+function normalizeProductCategory(category) {
+    const normalized = String(category || '').trim().toLowerCase();
+    const categoryMap = {
+        beauty: 'beauty',
+        fragrances: 'fragrances',
+        furniture: 'furniture',
+        groceries: 'groceries',
+        'home-decoration': 'homeDecoration',
+        'kitchen-accessories': 'kitchenAccessories',
+        laptops: 'laptops',
+        'mens-shirts': 'clothing',
+        'womens-dresses': 'clothing',
+        'womens-shoes': 'shoes',
+        'mens-shoes': 'shoes',
+        'mens-watches': 'watches',
+        'womens-watches': 'watches',
+        'mobile-accessories': 'electronics',
+        smartphones: 'electronics',
+        tablets: 'electronics',
+        motorcycle: 'general',
+        vehicle: 'general',
+        'sports-accessories': 'general',
+        sunglasses: 'general',
+        tops: 'clothing'
+    };
+
+    return categoryMap[normalized] || normalized || 'general';
+}
+
+function formatCategoryLabel(category) {
+    return String(category || 'general')
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/^./, char => char.toUpperCase());
 }
 
 function formatDuration(ms) {
@@ -640,7 +698,7 @@ function formatDuration(ms) {
 // Checkout endpoint
 app.post('/api/checkout', authenticateUser, async (req, res) => {
     try {
-        const { name, email, address, productName, productPrice, productImage } = req.body;
+        const { name, email, address, productName, productPrice, productImage, productCategory } = req.body;
         if (!name || !email || !address || !productName || !productPrice || !productImage) {
             return res.status(400).json({ success: false, message: 'All fields are required' });
         }
@@ -652,6 +710,7 @@ app.post('/api/checkout', authenticateUser, async (req, res) => {
             productName, 
             productPrice, 
             productImage, 
+            productCategory: getProductCategory(productName, productCategory),
             reviews: [] 
         });
         await newOrder.save();

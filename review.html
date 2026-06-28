@@ -337,6 +337,7 @@
                         <h2>${escapeHtml(order.productName)}</h2>
                         <div class="order-meta">
                             <span class="meta-chip">$${Number(order.productPrice || 0).toFixed(2)}</span>
+                            <span class="meta-chip">${escapeHtml(order.productCategory || 'general')}</span>
                             <span class="meta-chip">${(order.reviews || []).length} reviews</span>
                             <span class="meta-chip">${escapeHtml(order.customerName || 'Customer')}</span>
                         </div>
